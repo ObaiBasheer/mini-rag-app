@@ -5,11 +5,13 @@ class Settings(BaseSettings):
     APP_NAME: str
     APP_VERSION: str
     OPENAI_API_KEY: str
-    FILE_ALLOWED_EXTENSIONS: list
+    FILE_ALLOWED_TYPES: list
     FILE_MAX_SIZE_MB: int
+    FILE_UPLOAD_DIR: str
+    FILE_DEFAULT_CHUNK_SIZE: int
 
     class Config:
-     env_file = ".env"
+        env_file = ".env"
 
 
 

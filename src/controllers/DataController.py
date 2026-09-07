@@ -34,7 +34,7 @@ class DataController(BaseController):
             random_string = self.generate_random_string()
             new_file_path = os.path.join(project_path, random_string + "_" + cleaned_filename)
         
-        return new_file_path
+        return new_file_path, random_string + "_" + cleaned_filename
     
     def get_cleaned_filename(self, original_filename: str) -> str:
         # remove any special characters , except underscores and .

@@ -6,8 +6,11 @@ from helpers.config import Settings , get_settings
 from controllers import DataController , ProjectController , ProcessController
 from models.enums import ResponseSignal
 import logging
+
+from models.db_schemes import DataChunk
 from .schemas.data import ProcessRequest
 from models.ProjectModel import ProjectModel
+from models.ChunkModel import ChunkModel
 
 logger = logging.getLogger('uvicorn.error')
 
@@ -45,24 +48,51 @@ async def upload_data(request: Request, project_id:str, file:UploadFile, app_set
         
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"message": ResponseSignal.FILE_UPLOAD_FAILED.value})
             
-    return JSONResponse(status_code=status.HTTP_200_OK, content={"message": ResponseSignal.FILE_UPLOAD_SUCCESS.value , "file_id": file_id , "project_id": str(project.id)})
+    return JSONResponse(status_code=status.HTTP_200_OK, content={"message": ResponseSignal.FILE_UPLOAD_SUCCESS.value , "file_id": file_id })
 
 
 ####
 
 @data_router.post("/process/{project_id}")
-async def process_data(project_id:str, request: ProcessRequest):
-    # Implement the logic to process the data based on the provided parameters
-    file_content = ProcessController().get_file_content(request.file_id)
+async def process_data(project_id:str, payload: ProcessRequest, request: Request):
     
-    file_chunks = ProcessController().process_file_content(
-        file_id=request.file_id,
-        chunk_size=request.chunk_size,
-        chunk_overlap=request.overlap_size,
+    process_controller = ProcessController(project_id)
+    # Implement the logic to process the data based on the provided parameters
+    file_content = process_controller.get_file_content(payload.file_id)
+    
+    # Create or retrieve the project using ProjectModel
+    project_model = ProjectModel(request.app.mongodb)
+    project = await project_model.get_project_or_create_one(project_id)
+    
+    
+        
+    file_chunks = process_controller.process_file_content(
+        file_id=payload.file_id,
+        chunk_size=payload.chunk_size,
+        chunk_overlap=payload.overlap_size,
         file_content=file_content
     )
     
-    if file_chunks:
-        return JSONResponse(status_code=status.HTTP_200_OK, content={"message": ResponseSignal.FILE_PROCESS_SUCCESS.value, "chunks": file_chunks})
-    else:
+    if file_chunks is None or len(file_chunks) == 0:
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"message": ResponseSignal.FILE_PROCESS_FAILED.value})
+    
+    file_chunks_records = [
+        DataChunk(
+            chunk_text=chunk.page_content,
+            chunk_metadata= { **chunk.metadata, "file_id": payload.file_id },
+            chunk_order=index + 1,
+            chunk_project_id=str(project.id)
+            
+        ) for index,  chunk in enumerate(file_chunks)
+    ]
+    
+    chunk_model = ChunkModel(request.app.mongodb)
+    
+    if payload.do_reset == 1:
+        await chunk_model.delete_chunks_by_project_id(str(project.id))
+    
+    await chunk_model.insert_chunks_bulk(file_chunks_records)
+    
+
+    return JSONResponse(status_code=status.HTTP_200_OK, content={"message": ResponseSignal.FILE_PROCESS_SUCCESS.value, "chunks": len(file_chunks_records)})
+ 

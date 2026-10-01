@@ -53,25 +53,26 @@ class ProcessController(BaseController):
                 length_function=len
             )
             
-            # Extract text and metadata from the loaded content
-            file_content_texts = [
-                rec.page_content 
-                for rec in content
-            ]
+            # # Extract text and metadata from the loaded content
+            # file_content_texts = [
+            #     rec.page_content 
+            #     for rec in content
+            # ]
             
-            file_content_metadata = [
+            # file_content_metadata = [
 
-                rec.metadata 
-                for rec in content
-            ]
+            #     rec.metadata 
+            #     for rec in content
+            # ]
             
-            # Split the documents into chunks using the text splitter
+            # # Split the documents into chunks using the text splitter
             
-            chunks = text_splitter.split_documents(
-                file_content_texts, 
-                metadatas=file_content_metadata
-            )
+            # chunks = text_splitter.split_documents(
+            #     file_content_texts, 
+            #     file_content_metadata
+            # )
             
+            chunks = text_splitter.split_documents(content)
             return chunks
         else:
             return None

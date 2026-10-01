@@ -7,18 +7,21 @@ from contextlib import asynccontextmanager
 
 
 
-app = FastAPI()
+
 
 @asynccontextmanager
-async def startup_db_client():
+async def startup_db_client(app: FastAPI):
     settings = get_settings()
-    app.mongodb_client = AsyncIOMotorClient(settings.MONGO_URI)
-    app.mongodb = app.mongodb_client[settings.MONGO_DB_NAME]
+    app.mongodb_client = AsyncIOMotorClient(settings.MONGODB_URL)
+    app.mongodb = app.mongodb_client[settings.MONGODB_DATABASE]
     
     yield  #  app runs and processes requests here
+    
     
     # Shutdown: Close the Motor client connection pool safely
     app.mongodb_client.close()
 
+
+app = FastAPI(lifespan=startup_db_client)
 app.include_router(base.base_router)
 app.include_router(data.data_router)

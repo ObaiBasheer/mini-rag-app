@@ -18,6 +18,7 @@ class ProjectModel(BaseDataModel):
     
     # Retrieve a project by its project_id, or create a new one if it doesn't exist
     async def get_project_or_create_one(self, project_id: str):
+        
         project = await self.collection.find_one({"project_id": project_id})
         if project:
             return Project(**project) # Return the existing project as a Pydantic model

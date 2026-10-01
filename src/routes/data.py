@@ -22,7 +22,7 @@ async def upload_data(request: Request, project_id:str, file:UploadFile, app_set
     ## DataController_instance = DataController()
     
     # Create or retrieve the project using ProjectModel
-    project_model = ProjectModel(request.app.mongodb_client)
+    project_model = ProjectModel(request.app.mongodb)
     project = await project_model.get_project_or_create_one(project_id)
     
     # Validate the uploaded file and handle the upload process
@@ -45,7 +45,7 @@ async def upload_data(request: Request, project_id:str, file:UploadFile, app_set
         
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"message": ResponseSignal.FILE_UPLOAD_FAILED.value})
             
-    return JSONResponse(status_code=status.HTTP_200_OK, content={"message": ResponseSignal.FILE_UPLOAD_SUCCESS.value , "file_id": file_id , "project_id": str(project._id)})
+    return JSONResponse(status_code=status.HTTP_200_OK, content={"message": ResponseSignal.FILE_UPLOAD_SUCCESS.value , "file_id": file_id , "project_id": str(project.id)})
 
 
 ####

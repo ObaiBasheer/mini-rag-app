@@ -4,7 +4,10 @@ from bson.objectid import ObjectId
 
 
 class Project(BaseModel):
-    _id: Optional[ObjectId]
+    id: Optional[ObjectId] = Field(
+        default=None,
+        alias="_id"
+    )
     project_id: str = Field(..., description="Unique identifier for the project", min_length=1)
     
     

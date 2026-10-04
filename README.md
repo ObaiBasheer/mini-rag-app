@@ -29,3 +29,15 @@ Set your environment variables in the `.env` file. Like `OPENAI_API_KEY` value .
 ```bash
 $ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
+
+## Run Docker Compose Services 
+
+```bash
+$ cd docker
+$ cp .env.example .env
+```
+
+- update `.env` with your cerdentials
+
+
+```bash

@@ -1,3 +1,5 @@
+from typing import Optional
+from langchain_core.documents import Document
 
 from .BaseController import BaseController
 from .projectController import ProjectController
@@ -33,14 +35,20 @@ class ProcessController(BaseController):
         
         return None
     
-    def get_file_content(self, file_id:str):
+    def get_file_content(self, file_id: str) -> Optional[list[Document]]:
         loader = self.get_file_loader(file_id)
         if loader:
             return loader.load()
         else:
             return None
         
-    def process_file_content(self, file_id:str, chunk_size:int=100, chunk_overlap:int=20, file_content:list=None):
+    def process_file_content(
+        self,
+        file_id: str,
+        chunk_size: int = 100,
+        chunk_overlap: int = 20,
+        file_content: Optional[list[Document]] = None,
+    ) -> Optional[list[Document]]:
         if file_content is None:
             content = self.get_file_content(file_id)
         else:

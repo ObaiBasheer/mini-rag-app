@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     FILE_UPLOAD_DIR: str
     FILE_DEFAULT_CHUNK_SIZE: int
     
-    MONGODB_URL: str
+    MONGODB_URI: str
     MONGODB_DATABASE: str
 
     class Config:

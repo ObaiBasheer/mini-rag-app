@@ -1,3 +1,5 @@
+from motor.motor_asyncio import AsyncIOMotorDatabase
+
 from .BaseDataModel import BaseDataModel
 from .db_schemes import DataChunk
 from .enums.DataBaseEnum import DataBaseEnum
@@ -6,16 +8,38 @@ from pymongo import InsertOne
 
 
 class ChunkModel(BaseDataModel):
-    def __init__(self, db_client: object):
+    def __init__(self, db_client: AsyncIOMotorDatabase):
         super().__init__(db_client)
         
         # Set the collection name and collection object for chunks
         self.collection_name = DataBaseEnum.COLLECTION_CHUNK_NAME.value
         self.collection = self.db_client[self.collection_name]
+
+
+
+    @classmethod
+    async def create_instance(cls, db_client: AsyncIOMotorDatabase):
+        instance = cls(db_client)
+        await instance.init_collection()
+        return instance
+
+    async def init_collection(self):
     
+            # all_collections = await self.db_client.list_collection_names()
+            # if DataBaseEnum.COLLECTION_PROJECT_NAME.value not in all_collections:
+            #     self.collection = self.db_client[DataBaseEnum.COLLECTION_PROJECT_NAME.value]
+                indexes = DataChunk.get_indexes()
+                for index in indexes:
+                    await self.collection.create_index(
+                        index["key"],
+                        name=index["name"],
+                        unique=index["unique"]
+                    )  # Create indexes for the collection   
+
+        
     # Create a new chunk in the database    
     async def create_chunk(self, chunk_data: DataChunk):
-        chunk_dict = chunk_data.model_dump(exclude_unset=True)  # Convert Pydantic model to dictionary, excluding unset fields
+        chunk_dict = chunk_data.model_dump(exclude_unset=True, by_alias=True)  # Use MongoDB field names, excluding unset fields
         result = await self.collection.insert_one(chunk_dict)
         return str(result.inserted_id)
     
@@ -50,7 +74,7 @@ class ChunkModel(BaseDataModel):
         
         for i in range(0, len(chunks), batch_size):
             batch = chunks[i:i + batch_size]
-            operations = [InsertOne(chunk.model_dump(exclude_unset=True)) for chunk in batch]
+            operations = [InsertOne(chunk.model_dump(exclude_unset=True, by_alias=True)) for chunk in batch]
             await self.collection.bulk_write(operations)
             
         return {"message": f"Inserted {len(chunks)} chunks in batches of {batch_size}."}

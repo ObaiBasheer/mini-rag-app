@@ -9,3 +9,4 @@ pymupdf==1.28.2
 langchain-text-splitters==1.1.2 # chunk documnet
 langchain-community==0.4.2 #load documents / integration
 motor==3.7.1
+pymongo==4.10.0

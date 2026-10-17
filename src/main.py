@@ -4,6 +4,8 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from helpers.config import get_settings
 from contextlib import asynccontextmanager
 
+from models.ProjectModel import ProjectModel
+
 
 
 
@@ -12,14 +14,19 @@ from contextlib import asynccontextmanager
 @asynccontextmanager
 async def startup_db_client(app: FastAPI):
     settings = get_settings()
-    app.mongodb_client = AsyncIOMotorClient(settings.MONGODB_URL)
-    app.mongodb = app.mongodb_client[settings.MONGODB_DATABASE]
-    
-    yield  #  app runs and processes requests here
-    
-    
-    # Shutdown: Close the Motor client connection pool safely
-    app.mongodb_client.close()
+    mongodb_client = AsyncIOMotorClient(settings.MONGODB_URI)
+    app.state.mongodb_client = mongodb_client
+    app.state.mongodb = mongodb_client[settings.MONGODB_DATABASE]
+
+    try:
+        # Initialize indexes once during startup
+        project_model = ProjectModel(app.state.mongodb)
+        await project_model.init_collection()
+
+        yield  # app runs and processes requests here
+    finally:
+        # Close the Motor client connection pool safely
+        mongodb_client.close()
 
 
 app = FastAPI(lifespan=startup_db_client)

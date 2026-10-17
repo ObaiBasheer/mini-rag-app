@@ -1,6 +1,6 @@
 from pydantic import BaseModel , Field , field_validator
 from typing import Optional
-from bson.objectid import ObjectId
+from bson import ObjectId
 
 
 class Project(BaseModel):
@@ -23,3 +23,16 @@ class Project(BaseModel):
     class Config:
         arbitrary_types_allowed = True
         # json_encoders = {ObjectId: str}
+
+    @classmethod
+    def get_indexes(cls):
+        return [
+            {
+                "key": [
+                    ("project_id", 1)
+                    ],
+                
+                "unique": True,
+                "name": "unique_project_id_index_1"
+            }
+        ]

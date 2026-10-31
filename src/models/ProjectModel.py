@@ -35,8 +35,9 @@ class ProjectModel(BaseDataModel):
     
     # Create a new project in the database    
     async def create_project(self, project: Project):
-        project_dict = project.model_dump(exclude_unset=True)  # Convert Pydantic model to dictionary, excluding unset fields
+        project_dict = project.model_dump(by_alias=True, exclude_none=True)
         result = await self.collection.insert_one(project_dict)
+        project.id = result.inserted_id
         return str(result.inserted_id)
     
     # Retrieve a project by its project_id, or create a new one if it doesn't exist

@@ -1,7 +1,7 @@
 from pydantic import BaseModel , Field , field_validator
 from typing import Optional
 from bson import ObjectId
-from datetime import datetime
+from datetime import datetime, UTC
 
 
 class Asset(BaseModel):
@@ -13,9 +13,9 @@ class Asset(BaseModel):
     asset_project_id:str = Field(..., description="ID of the project to which the asset belongs")
     asset_type:str = Field(..., description="Type of the asset", min_length=1)
     asset_name:str = Field(..., description="Unique identifier for the asset", min_length=1)
-    asset_size:int = Field(ge=0,default=None, description="Size of the asset in bytes")
+    asset_size:int = Field(ge=0,default=0, description="Size of the asset in bytes")
     asset_config: Optional[dict] = Field(default=None, description="Configuration details for the asset")
-    asset_pushed_at: datetime = Field(default=datetime.utcnow, description="Timestamp when the asset was pushed")
+    asset_pushed_at: datetime = Field(default=datetime.now(UTC), description="Timestamp when the asset was pushed")
     
     
     class Config:

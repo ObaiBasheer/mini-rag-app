@@ -1,10 +1,9 @@
 
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
-from src.models.db_schemes import asset
+from .db_schemes import Asset
 
 from .BaseDataModel import BaseDataModel
-from .db_schemes import Asset
 from .enums.DataBaseEnum import DataBaseEnum
 
 
@@ -35,9 +34,10 @@ class AssetModel(BaseDataModel):
                 
                 
     async def create_asset(self, asset_data: Asset):
-        asset_dict = asset_data.dict(by_alias=True)
+        asset_dict = asset_data.model_dump(by_alias=True, exclude_none=True)
         result = await self.collection.insert_one(asset_dict)
-        return str(result.inserted_id)
+        asset_data.id = result.inserted_id  # Set the id of the asset_data object
+        return asset_data  # Return the asset_data object with the assigned id
     
     async def get_all_project_assets(self, asset_project_id: str, page: int = 1, page_size: int = 10):
         skip_count = (page - 1) * page_size
